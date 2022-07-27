@@ -1,0 +1,3 @@
+Vec3.data max_count:3 fixed_count:true
+Drone.log.text max_size:256
+Drone.log.file max_size:256

@@ -1,0 +1,9 @@
+{
+    "search.exclude": {
+        "nanopb": true,
+        "pico-sdk": true,
+        "RF24": true,
+        "ubxlib": true
+    },
+    "editor.formatOnSave": true
+}

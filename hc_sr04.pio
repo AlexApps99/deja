@@ -1,0 +1,46 @@
+.program hc_sr04
+.side_set 1
+; clkdiv, 10 clocks = 10us
+; set to 11 just to be sure
+.define TRIGGER_T 11
+
+begin:
+; x = 0xFFFFFFFF
+mov x, ~null side 0
+; wait until restart
+irq wait 0 side 0
+; wait for echo to be low
+wait 0 pin, 0 side 0
+; set trigger high, wait TRIGGER_T cycles
+nop side 1 [(TRIGGER_T-1)]
+; set trigger low, wait for echo to be high
+wait 1 pin, 0 side 0
+loop:
+    ; keep looping if echo high
+    jmp pin continue side 0
+        ; otherwise send
+        jmp send side 0
+    continue:
+    ; decrement x and repeat
+    jmp x--, loop side 0
+    ; x has wrapped around, send anyways
+send:
+; invert x for count
+mov isr, ~x side 0
+; send value
+push side 0
+
+% c-sdk {
+static inline void hc_sr04_init(PIO pio, uint sm, uint offset, uint trig, uint echo) {
+    pio_sm_config c = hc_sr04_program_get_default_config(offset);
+    sm_config_set_sideset_pins(&c, trig);
+    sm_config_set_jmp_pin(&c, echo);
+    sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_RX);
+    sm_config_set_in_pins(&c, echo);
+    // 125MHz / x = 1 / 1us, x = 125
+    sm_config_set_clkdiv_int_frac(&c, 125, 1);
+    pio_gpio_init(pio, trig);
+    pio_sm_init(pio, sm, offset, &c);
+    pio_sm_set_enabled(pio, sm, true);
+}
+%}
