@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.13)
 
 # initialize pico-sdk from submodule
 # note: this must happen before project()
-include(pico-sdk/pico_sdk_init.cmake)
+include(ext/pico-sdk/pico_sdk_init.cmake)
 
 project(deja CXX C)
 
@@ -12,10 +12,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 pico_sdk_init()
 
 # RF24
-include(RF24/CMakeLists.txt)
+include(ext/RF24/CMakeLists.txt)
 
 # nanopb
-set(NANOPB_SRC_ROOT_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/nanopb)
+set(NANOPB_SRC_ROOT_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/ext/nanopb)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${NANOPB_SRC_ROOT_FOLDER}/extra)
 find_package(Nanopb REQUIRED)
 set(NANOPB_OPTIONS "--cpp-descriptors")
@@ -25,19 +25,27 @@ file(GLOB_RECURSE drone_SRC CONFIGURE_DEPENDS "src/*.h" "src/*.c" "src/*.hpp" "s
 
 add_executable(drone
     ${drone_SRC}
-    motion_driver/inv_mpu.c
-    motion_driver/inv_mpu.h
+    ext/motion_driver/inv_mpu.c
+    ext/motion_driver/inv_mpu.h
+    ext/BMP2-Sensor-API/bmp2.c
+    ext/BMP2-Sensor-API/bmp2.h
+    ext/BMP2-Sensor-API/bmp2_defs.h
     ${PROTO_SRCS} ${PROTO_HDRS}
 )
 target_include_directories(drone PRIVATE
     ${NANOPB_INCLUDE_DIRS}
     ${CMAKE_CURRENT_BINARY_DIR}
+    ext/motion_driver/
+    ext/BMP2-Sensor-API/
 )
 
 target_compile_definitions(drone PRIVATE
     NUM_MOTORS=6
 
     PICO_STDIO_USB_CONNECT_WAIT_TIMEOUT_MS=1000
+
+    PB_ENABLE_MALLOC=1
+    PB_CONVERT_DOUBLE_FLOAT=1
 
     PICO_DEFAULT_UART=0
     PICO_DEFAULT_I2C=0
@@ -80,13 +88,14 @@ target_link_libraries(drone
     hardware_spi
     hardware_pwm
     hardware_pio
+    hardware_adc
     hardware_i2c
     pico_stdio_usb
     RF24
 )
 
-# pico_enable_stdio_usb(hello_usb 1)
-# pico_enable_stdio_uart(hello_usb 0)
+pico_enable_stdio_usb(drone 1)
+pico_enable_stdio_uart(drone 0)
 
 # create map/bin/hex/uf2 file in addition to ELF.
 pico_add_extra_outputs(drone)

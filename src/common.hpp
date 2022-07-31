@@ -5,10 +5,6 @@
 
 #include "log.hpp"
 
-// TODO u8, u16 etc
-// logging stuff
-// and so on
-
 typedef uint8_t u8;
 typedef uint16_t u16;
 typedef uint32_t u32;

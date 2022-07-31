@@ -24,7 +24,6 @@ class Log {
     // Stdio logger
     static void set_stdio();
 
-   protected:
    private:
     static Log& logger;
 };

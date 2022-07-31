@@ -1,9 +1,9 @@
-#include "hardware/pwm.h"
+#include <hardware/gpio.h>
+#include <hardware/pwm.h>
+#include <pico/binary_info.h>
 
 #include "../common.hpp"
-#include "../io.hpp"
-#include "hardware/gpio.h"
-#include "pico/binary_info.h"
+#include "io.hpp"
 
 bi_decl(bi_4pins_with_func(PIN_PWM0, PIN_PWM1, PIN_PWM2, PIN_PWM3,
                            GPIO_FUNC_PWM));
@@ -32,22 +32,25 @@ class MotorPWM : Motor {
         pwm_config_set_wrap(&conf, 62500 / 2);
         pwm_init(slice_num, &conf, true);
         pwm_set_chan_level(slice_num, channel, 62500 / 4);
-        pin_old = gpio_get_function(pin);
         gpio_set_function(pin, GPIO_FUNC_PWM);
     }
 
     ~MotorPWM() {
         pwm_set_enabled(slice_num, false);
-        gpio_set_function(pin, pin_old);
+        gpio_set_function(pin, GPIO_FUNC_NULL);
     }
+
+    // TODO find a way to reduce it to NUM_MOTORS
+    const u32 MOTOR_PINS[8] = {
+        PIN_PWM0, PIN_PWM1, PIN_PWM2, PIN_PWM3,
+        PIN_PWM4, PIN_PWM5, PIN_PWM6, PIN_PWM7,
+    };
 
    private:
     u32 slice_num;
     u32 channel;
     u32 pin;
     pwm_config conf;
-
-    gpio_function pin_old;
 
     void apply_speed(void) override {
         // see math explanation

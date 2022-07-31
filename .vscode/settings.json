@@ -1,9 +1,10 @@
 {
     "search.exclude": {
-        "nanopb": true,
-        "pico-sdk": true,
-        "RF24": true,
-        "ubxlib": true
+        "ext/BMP2-Sensor-API": true,
+        "ext/motion_driver": true,
+        "ext/nanopb": true,
+        "ext/pico-sdk": true,
+        "ext/RF24": true
     },
     "editor.formatOnSave": true
 }

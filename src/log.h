@@ -1,6 +1,6 @@
 #pragma once
 
-#include "stdio.h"
+#include <stdio.h>
 
 #define _STRINGIFY(x) #x
 #define _TOSTRING(x) _STRINGIFY(x)

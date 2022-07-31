@@ -1,9 +1,12 @@
-[submodule "nanopb"]
-	path = nanopb
+[submodule "ext/nanopb"]
+	path = ext/nanopb
 	url = https://github.com/nanopb/nanopb.git
-[submodule "pico-sdk"]
-	path = pico-sdk
+[submodule "ext/pico-sdk"]
+	path = ext/pico-sdk
 	url = https://github.com/raspberrypi/pico-sdk.git
-[submodule "RF24"]
-	path = RF24
+[submodule "ext/RF24"]
+	path = ext/RF24
 	url = https://github.com/nRF24/RF24.git
+[submodule "ext/BMP2-Sensor-API"]
+	path = ext/BMP2-Sensor-API
+	url = https://github.com/BoschSensortec/BMP2-Sensor-API.git

@@ -1,86 +1,84 @@
 syntax = "proto3";
 option optimize_for = LITE_RUNTIME;
 
-message Vec3 { repeated float data = 1; }
-
 message Ground {
-  // Time message was sent (ms?)
-  uint64 time = 1;
-  oneof msg {
-    // Initialize the drone's settings
-    Config config = 2;
-    // Kill or unkill the drone
-    bool kill = 3;
-  }
-
-  message Config {
-    // Weight in kg of the drone
-    float weight = 1;
-    // Maximum rotor threshold, [0..1]
-    float max_rotor_speed = 2;
-    Peripherals io = 3;
-    PIDs pid = 4;
-
-    message Peripherals {
-      optional GPS gps = 1;
-      Mpu mpu = 2;
-      Ultrasonic ultrasonic = 3;
-      repeated uint32 motors = 4;
-      Nrf nrf = 5;
-
-      message GPS { uint32 baud = 1; }
-
-      message Mpu {}
-
-      message Ultrasonic { uint32 interval_ms = 1; }
-
-      message Nrf {}
+    // Time message was sent (ms?)
+    uint64 time = 1;
+    oneof msg {
+        // Initialize the drone's settings
+        Config config = 2;
+        // Kill or unkill the drone
+        bool kill = 3;
     }
 
-    message PIDs {
-      Vec3 yaw = 1;
-      Vec3 pitch = 2;
-      Vec3 roll = 3;
-      Vec3 thrust = 4;
-    }
-  }
+    message Config {
+        // Weight in kg of the drone
+        float weight = 1;
+        // Maximum rotor threshold, [0..1]
+        float max_rotor_speed = 2;
+        Peripherals io = 3;
+        PIDs pid = 4;
 
-  message Kill {}
+        message Peripherals {
+            optional GPS gps = 1;
+            Mpu mpu = 2;
+            Ultrasonic ultrasonic = 3;
+            repeated uint32 motors = 4;
+            Nrf nrf = 5;
+
+            message GPS {
+                uint32 baud = 1;
+            }
+
+            message Mpu {}
+
+            message Ultrasonic {
+                uint32 interval_ms = 1;
+            }
+
+            message Nrf {}
+        }
+
+        message PIDs {
+            repeated float yaw = 1;
+            repeated float pitch = 2;
+            repeated float roll = 3;
+            repeated float thrust = 4;
+        }
+    }
 }
 
 message Drone {
-  // Time message was sent
-  uint64 time = 1;
-  oneof msg {
-    Log log = 2;
-    Telemetry telemetry = 3;
-  }
-
-  message Log {
-    // log level
-    Level level = 1;
-    // text being logged
-    string text = 2;
-    // file:line
-    optional string file = 3;
-
-    enum Level {
-      ERROR = 0;
-      WARN = 1;
-      INFO = 2;
-      DEBUG = 3;
+    // Time message was sent
+    uint64 time = 1;
+    oneof msg {
+        Log log = 2;
+        Telemetry telemetry = 3;
     }
-  }
-  message Telemetry {
-    Type type = 1;
-    uint32 id = 2;
-    repeated float data = 3;
 
-    enum Type {
-      IMU = 0;
-      ULTRASONIC = 1;
-      GPS = 2;
-      PID = 3;
+    message Log {
+        // log level
+        Level level = 1;
+        // text being logged
+        string text = 2;
+
+        enum Level {
+            ERROR = 0;
+            WARN = 1;
+            INFO = 2;
+            DEBUG = 3;
+        }
     }
-  }
+    message Telemetry {
+        Type type = 1;
+        uint32 id = 2;
+        repeated float data = 3;
+
+        enum Type {
+            IMU = 0;
+            ULTRASONIC = 1;
+            GPS = 2;
+            PID = 3;
+        }
+    }
 }
