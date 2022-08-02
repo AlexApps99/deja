@@ -20,7 +20,7 @@ PowerMon::PowerMon(u32 voltage, u32 current)
     adc_gpio_init(current);
 }
 
-PowerMonData PowerMon::poll() {
+PowerMon::Data PowerMon::poll() {
     const f32 conv = 3.3 / (1 << 12);
     f32 a = adc_read() * conv;
     f32 b = adc_read() * conv;

@@ -2,7 +2,8 @@
 #include <pb_decode.h>
 #include <pb_encode.h>
 
-#include "io.hpp"
+#include "twoway.hpp"
+
 class CDC : public TwoWay {
    public:
     CDC();

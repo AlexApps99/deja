@@ -2,16 +2,15 @@
 
 class StdioLog : public Log {
    public:
-    void log(const LogLevel level, const char* msg,
-             const char* const pos) override {
-        printf("[%-5s %s] %s\n", this->level(level), pos, msg);
+    void log(const LogLevel level, const char* msg) override {
+        printf("[%-5s] %s\n", this->level(level), msg);
     }
     StdioLog() {}
 };
 
 Log& Log::logger = *(new Log());
 
-void Log::log(const LogLevel level, const char* msg, const char* const pos) {
+void Log::log(const LogLevel level, const char* msg) {
     // do nothing
 }
 
@@ -35,7 +34,6 @@ void Log::set_stdio() {
     l->set_global();
 }
 
-extern "C" void logstr(unsigned char level, const char* buffer,
-                       const char* pos) {
-    Log::instance().log(static_cast<LogLevel>(level), buffer, pos);
+extern "C" void logstr(unsigned char level, const char* buffer) {
+    Log::instance().log(static_cast<LogLevel>(level), buffer);
 }

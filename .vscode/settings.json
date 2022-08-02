@@ -6,5 +6,9 @@
         "ext/pico-sdk": true,
         "ext/RF24": true
     },
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "explorer.fileNesting.patterns": {
+        "*.hpp": "${capture}.cpp",
+        "*.h": "${capture}.c"
+    }
 }

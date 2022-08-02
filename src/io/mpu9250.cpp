@@ -16,11 +16,11 @@ bi_decl(bi_1pin_with_name(PIN_MPU9250_INT, "MPU9250 INT"));
 // I can't use FIFO because it doesn't seem to support compass
 // however, 0x49/73 seems to be allowable on the FIFO?
 // I need to test it, obviously (not a priority)
-class MPU9250 {
+class Mpu9250 {
    public:
-    static inline MPU9250& instance() { return *mpu9250; }
+    static inline Mpu9250& instance() { return *mpu9250; }
     static inline void setup(I2C& i2c, u32 int_p) {
-        if (!mpu9250) mpu9250 = new MPU9250(i2c, int_p);
+        if (!mpu9250) mpu9250 = new Mpu9250(i2c, int_p);
     }
     static inline void destroy() {
         if (mpu9250) {
@@ -29,10 +29,10 @@ class MPU9250 {
         }
     }
 
-    ~MPU9250() {}
+    ~Mpu9250() {}
 
    private:
-    MPU9250(I2C& i2c, u32 int_p) : i2c(i2c), int_p(int_p) {
+    Mpu9250(I2C& i2c, u32 int_p) : i2c(i2c), int_p(int_p) {
         // TODO error checking
         mpu_init(i2c.i2c);
         // mpu_set_gyro_fsr(2000);
@@ -64,7 +64,7 @@ class MPU9250 {
     I2C& i2c;
     u32 int_p;
 
-    static MPU9250* mpu9250;
+    static Mpu9250* mpu9250;
 };
 
-MPU9250* MPU9250::mpu9250 = nullptr;
+Mpu9250* Mpu9250::mpu9250 = nullptr;

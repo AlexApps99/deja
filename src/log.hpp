@@ -10,8 +10,7 @@ enum class LogLevel : unsigned char {
 class Log {
    public:
     // Logs a message (can be called from multiple threads)
-    virtual void log(const LogLevel level, const char* msg,
-                     const char* const pos);
+    virtual void log(const LogLevel level, const char* msg);
 
     inline static Log& instance() { return logger; }
 

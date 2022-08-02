@@ -1,13 +1,17 @@
 // TODO move NRF stuff here
 // add IRQ, CE, SPI pins
 
+#include "nrf24l01.hpp"
+
 #include <RF24.h>
 #include <hardware/gpio.h>
 #include <hardware/irq.h>
 #include <pico/binary_info.h>
 #include <pico/sync.h>
 
-#include "io.hpp"
+#include <vector>
+
+#include "twoway.hpp"
 
 bi_decl(bi_2pins_with_func(PICO_DEFAULT_SPI_RX_PIN, PICO_DEFAULT_SPI_TX_PIN,
                            GPIO_FUNC_SPI));

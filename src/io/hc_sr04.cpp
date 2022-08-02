@@ -6,7 +6,6 @@
 
 #include "../common.hpp"
 #include "hc_sr04.pio.h"
-#include "io.hpp"
 
 bi_decl(bi_2pins_with_names(PIN_HC_SR04_TRIG, "HC-SR04 TRIG", PIN_HC_SR04_ECHO,
                             "HC-SR04 ECHO"));
