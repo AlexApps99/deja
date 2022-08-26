@@ -4,24 +4,21 @@
 // See: http://www.x-io.co.uk/node/8#open_source_ahrs_and_imu_algorithms
 class MadgwickAHRS {
    public:
+    using Num = double;
     // sample period
-    float sample_period;
+    Num sample_period;
 
     // algorithm gain beta
-    const float beta;
+    const Num beta;
 
     // quaternion output
-    float quaternion[4] = {1.0, 0.0, 0.0, 0.0};
+    Num quaternion[4] = {1.0, 0.0, 0.0, 0.0};
 
-    inline MadgwickAHRS(float sample_period, float beta = 1.0)
+    inline MadgwickAHRS(Num sample_period, Num beta = 1.0)
         : sample_period(sample_period), beta(beta) {}
 
-    // Algorithm AHRS update method. Requires only gyroscope and accelerometer
-    // Gyroscope measurements in radians/s.
-    void Update(float gx, float gy, float gz, float ax, float ay, float az,
-                float mx, float my, float mz);
-
-    // Algorithm IMU update method. Requires only gyroscope and accelerometer
-    // Gyroscope measurements in radians/s.
-    void Update(float gx, float gy, float gz, float ax, float ay, float az);
+    // Algorithm AHRS update method. Gyroscope measurements in radians/s, others
+    // are normalized so any units
+    void Update(Num gx, Num gy, Num gz, Num ax, Num ay, Num az, Num mx, Num my,
+                Num mz);
 };

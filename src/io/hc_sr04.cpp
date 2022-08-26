@@ -4,6 +4,8 @@
 #include <hardware/pio.h>
 #include <pico/binary_info.h>
 
+#include <cmath>
+
 #include "../common.hpp"
 #include "hc_sr04.pio.h"
 
@@ -18,13 +20,15 @@ HcSr04::HcSr04(u32 trig, u32 echo, PIO pio) : pio(pio), trig(trig), echo(echo) {
 
 f32 HcSr04::update() {
     uint len = pio_sm_get_rx_fifo_level(pio, sm);
+    uint len2 = pio_sm_get_tx_fifo_level(pio, sm);
     u32 data = 0;
+    pio_interrupt_clear(pio, 0);
+    if (len == 0) return NAN;
     // Drain FIFO
     for (uint x = 0; x < len; x++) {
         data = pio_sm_get(pio, sm);
     }
-    const f32 conv = 1e-6 * (343.2 / 2.0);
-    pio_interrupt_clear(pio, 0);
+    constexpr f32 conv = 1e-6 * (343.2 / 2.0);
     return data * conv;
 }
 

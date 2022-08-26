@@ -1,23 +1,27 @@
 #include "cdc.hpp"
 
-CDC::CDC() {}
+CDC::CDC() { stdio_usb_init(); }
 
 CDC::~CDC() {}
 
-bool CDC::out(pb_ostream_t *stream, const u8 *buf, size_t count) {
-    if (buf)
-        return fwrite(buf, count, 1, stdout) == 1;
-    else
-        return true;
+void CDC::read(std::vector<u8> &buf) {
+    size_t n = 0;
+    u8 block[CDC_BLOCK_SIZE] = {0};
+    do {
+        n = fread(block, 1, CDC_BLOCK_SIZE, stdin);
+        buf.insert(buf.end(), std::begin(block), std::begin(block) + n);
+    } while (n == CDC_BLOCK_SIZE);
 }
 
-bool CDC::in(pb_istream_t *stream, u8 *buf, size_t count) {
-    if (buf) {
-        return fread(buf, count, 1, stdin) == 1;
-
-    } else {
-        while (count-- && fgetc(stdin) != EOF)
-            ;
-        return count == 0;
-    }
+void CDC::write(std::vector<u8> &buf) {
+    size_t n = 0;
+    size_t len = buf.size();
+    do {
+        if (len <= 0) return;
+        n = fwrite(buf.data(), 1, std::min(CDC_BLOCK_SIZE, len), stdout);
+        if (n != 0) {
+            buf.erase(buf.begin(), buf.begin() + n);
+            len -= n;
+        }
+    } while (n == CDC_BLOCK_SIZE);
 }

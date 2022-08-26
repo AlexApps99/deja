@@ -39,6 +39,9 @@ static inline void hc_sr04_init(PIO pio, uint sm, uint offset, uint trig, uint e
     sm_config_set_in_pins(&c, echo);
     // 125MHz / x = 1 / 1us, x = 125
     sm_config_set_clkdiv_int_frac(&c, 125, 1);
+    pio_sm_set_consecutive_pindirs(pio, sm, echo, 1, false);
+    pio_sm_set_consecutive_pindirs(pio, sm, trig, 1, true);
+    pio_gpio_init(pio, echo);
     pio_gpio_init(pio, trig);
     pio_sm_init(pio, sm, offset, &c);
     pio_sm_set_enabled(pio, sm, true);

@@ -71,7 +71,6 @@ message Drone {
     }
     message Telemetry {
         Type type = 1;
-        uint32 id = 2;
         repeated float data = 3;
 
         enum Type {
@@ -79,6 +78,7 @@ message Drone {
             ULTRASONIC = 1;
             GPS = 2;
             PID = 3;
+            PRESSURE = 4;
         }
     }
 }

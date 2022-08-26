@@ -1,6 +1,7 @@
 #pragma once
 
-#include <stdio.h>
+#include "pico/stdio_usb.h"
+#include "stdio.h"
 
 #define MAX_FMT_LEN 512
 

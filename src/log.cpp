@@ -8,10 +8,16 @@ class StdioLog : public Log {
     StdioLog() {}
 };
 
-Log& Log::logger = *(new Log());
+Log* Log::logger = nullptr;
+Log Log::null_log{};
+bool Log::should_destruct = false;
 
 void Log::log(const LogLevel level, const char* msg) {
     // do nothing
+}
+
+Log::~Log() {
+    if (logger) delete logger;
 }
 
 constexpr const char* const Log::level(const LogLevel level) {
@@ -32,6 +38,7 @@ constexpr const char* const Log::level(const LogLevel level) {
 void Log::set_stdio() {
     StdioLog* l = new StdioLog();
     l->set_global();
+    should_destruct = true;
 }
 
 extern "C" void logstr(unsigned char level, const char* buffer) {

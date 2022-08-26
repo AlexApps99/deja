@@ -3,10 +3,10 @@
 #include <bmp2.h>
 #include <hardware/gpio.h>
 #include <hardware/i2c.h>
-#include <math.h>
 #include <pico/time.h>
 #include <string.h>
 
+#include <cmath>
 #include <optional>
 
 #include "../common.hpp"
@@ -47,7 +47,6 @@ static const char *err_msg(i8 res) {
     }
 }
 
-// TODO repeated_timer
 bool Bmp280::init() {
     const char *msg = nullptr;
     bmp2_config conf = {0};
@@ -55,6 +54,10 @@ bool Bmp280::init() {
     // Initialize BMP2
     msg = err_msg(bmp2_init(&bmp));
     if (msg) goto err;
+    // Reset BMP2 and wait a bit
+    msg = err_msg(bmp2_soft_reset(&bmp));
+    if (msg) goto err;
+    sleep_ms(100);
     // Get current config before modifying
     msg = err_msg(bmp2_get_config(&conf, &bmp));
     if (msg) goto err;
@@ -62,8 +65,8 @@ bool Bmp280::init() {
     // highest performance settings (temperature not too high)
     conf.filter = BMP2_FILTER_COEFF_16;
     conf.os_mode = BMP2_OS_MODE_ULTRA_HIGH_RESOLUTION;
-    conf.os_temp = BMP2_OS_2X;
-    conf.os_pres = BMP2_OS_16X;
+    conf.os_temp = BMP2_OS_1X;
+    conf.os_pres = BMP2_OS_8X;
     conf.odr = BMP2_ODR_0_5_MS;
 
     // Set new config
@@ -74,6 +77,9 @@ bool Bmp280::init() {
     if (msg) goto err;
     msg = err_msg(bmp2_compute_meas_time(&interval_us, &conf, &bmp));
     if (msg) goto err;
+
+    Ldebug("%u", interval_us);
+    add_repeating_timer_us(interval_us, int_handler, this, &timer);
     return true;
 
 err:
@@ -81,29 +87,9 @@ err:
     return false;
 }
 
-// Convert pressure in pascals to height in meters
-// TODO use temperature too
-// https://en.wikipedia.org/wiki/Barometric_formula#Pressure_equations
-// https://en.wikipedia.org/wiki/Atmospheric_pressure#Altitude_variation
-inline static f32 pa_to_m(u32 pa) {
-    // Atmospheric pressure at sea level
-    constexpr f32 p0 = 101325.0;
-    // Temperature (kelvin) at sea level
-    constexpr f32 T0 = 288.16;
-    // Temperature lapse rate (K/m)
-    constexpr f32 L = 0.00976;
-    // Gravity
-    constexpr f32 g = 9.80665;
-    // Molar mass of Earth's air
-    constexpr f32 M = 0.02896968;
-    // Universal gas constant
-    constexpr f32 R0 = 8.314462618;
-    constexpr f32 T0_L = T0 / L;
-    constexpr f32 fac = (R0 * L) / (g * M);
-    return T0_L * (pow(pa / p0, fac) - 1.0);
-}
-
-std::optional<Bmp280::Data> Bmp280::get_data() {
+// Convert pressure and temperature (compensated BMP units) to height in meters
+// https://en.wikipedia.org/wiki/Hypsometric_equation
+void Bmp280::get_data() {
     const char *msg = nullptr;
     bmp2_status status = {0};
     bmp2_data comp_data = {0};
@@ -111,19 +97,52 @@ std::optional<Bmp280::Data> Bmp280::get_data() {
     msg = err_msg(bmp2_get_status(&status, &bmp));
     if (msg) goto err;
 
-    if (status.measuring == BMP2_MEAS_DONE) {
+    // I am missing a lot of the MEAS_DONE windows because it's only 0.5ms long
+    // You can read at any point, though
+    // currently I'm just going to read at every opportunity, but it could be
+    // wise to save the old value in case it's duplicated
+    // (saving on some calculations)
+    // I could also take the approach of watching for changes in measurement
+    // state, that would require more frequent polling
+
+    // if (status.measuring == BMP2_MEAS_DONE)
+    {
         msg = err_msg(bmp2_get_sensor_data(&comp_data, &bmp));
         if (msg) goto err;
-        Bmp280::Data data{.altitude = pa_to_m(comp_data.pressure),
-                          .temperature = (f32)(comp_data.temperature * 0.01)};
-        return data;
-    } else {
-        return {};
+
+        // Gravity
+        constexpr f32 g = 9.80665;
+        // Molar mass of Earth's air
+        constexpr f32 M = 0.02896968;
+        // Universal gas constant
+        constexpr f32 R0 = 8.314462618;
+        // Specific gas constant for dry air
+        constexpr f32 R = R0 / M;
+        constexpr f32 R_g = R / g;
+
+        // This includes the division term for the temperature
+        constexpr f32 fac = R_g / 100.0;
+
+        u32 t = comp_data.temperature + 27315;
+
+        if (std::isnan(origin_pressure)) {
+            origin_pressure = comp_data.pressure;
+            return;
+        }
+
+        f32 delta =
+            fac * (f32)t * logf(origin_pressure / (f32)comp_data.pressure);
+        cb(delta);
+        return;
     }
+    // else {
+    //    if (status.measuring != BMP2_MEAS_ONGOING)
+    //        Ldebug("BMP %hhu", status.measuring);
+    //    return;
+    //}
 
 err:
     Lerror("%s", msg);
-    return {};
 }
 
 BMP2_INTF_RET_TYPE Bmp280::read(u8 reg_addr, u8 *reg_data, u32 length,
@@ -154,3 +173,9 @@ BMP2_INTF_RET_TYPE Bmp280::write(u8 reg_addr, const u8 *reg_data, u32 length,
 }
 
 void Bmp280::delay_us(u32 period, void *intf_ptr) { sleep_us(period); }
+
+bool Bmp280::int_handler(repeating_timer_t *d) {
+    Bmp280 *b = static_cast<Bmp280 *>(d->user_data);
+    b->get_data();
+    return true;
+}

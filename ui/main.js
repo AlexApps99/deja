@@ -19,6 +19,7 @@ class PbDecoder {
         } catch (e) {
             console.warn(e);
         }
+        console.log(this.reader.buf.slice(old_pos, this.reader.pos));
         this.reader.buf.splice(0, m != null ? this.reader.pos : old_pos);
         this.reader.pos = 0;
         this.reader.len = this.reader.buf.length;
@@ -38,17 +39,44 @@ class Comm {
     Drone;
     io;
     decoder;
-    encoder;
-    constructor(serialport, pb_root) {
+    constructor(serialport, pb_root, msg_callback) {
         this.io = serialport;
         this.root = pb_root;
         this.Ground = this.root.lookupType("Ground");
         this.Drone = this.root.lookupType("Drone");
-        this.io.onconnect = () => { };
-        this.io.ondisconnect = () => { };
+        this.io.onconnect = (e) => { console.log(e); };
+        this.io.ondisconnect = (e) => { console.log(e); };
         this.decoder = new TransformStream(new PbDecoder(Drone));
         this.io.readable.pipeThrough(this.decoder);
         console.log(this.decoder);
+
+        (async () => {
+            const r = this.decoder.readable.getReader();
+            while (1) {
+                try {
+                    let msg = (await r.read()).value;
+                    if (msg.hasOwnProperty("log")) {
+                        switch (msg.log.level) {
+                            case 3:
+                                console.debug(msg.log.text);
+                                break;
+                            case 2:
+                                console.info(msg.log.text);
+                                break;
+                            case 1:
+                                console.warn(msg.log.text);
+                                break;
+                            case 0:
+                            default:
+                                console.error(msg.log.text);
+                                break;
+                        }
+                    } else {
+                        console.log(msg);
+                    }
+                } catch (e) { console.log(e); break; }
+            }
+        })();
     }
 
     send(...msgs) {

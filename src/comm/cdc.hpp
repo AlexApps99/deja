@@ -1,15 +1,15 @@
 #pragma once
-#include <pb_decode.h>
-#include <pb_encode.h>
 
 #include "twoway.hpp"
 
-class CDC : public TwoWay {
+#define CDC_BLOCK_SIZE 256U
+
+class CDC final : public TwoWay {
    public:
     CDC();
     ~CDC();
 
    private:
-    bool out(pb_ostream_t *stream, const u8 *buf, size_t count) override;
-    bool in(pb_istream_t *stream, u8 *buf, size_t count) override;
+    void read(std::vector<u8> &buf) override;
+    void write(std::vector<u8> &buf) override;
 };

@@ -37,6 +37,7 @@
 #define MPU9250
 #include "../src/log.h"
 #include "hardware/i2c.h"
+#include "hardware/sync.h"
 #include "pico/time.h"
 
 static i2c_inst_t *i2c_i = NULL;
@@ -47,19 +48,24 @@ static char i2c_write(unsigned char slave_addr, unsigned char reg_addr,
     buf[0] = reg_addr;
     memcpy(&buf[1], data, length);
 
-    if (i2c_write_blocking(i2c_i, slave_addr, &buf[0], length + 1, false) !=
-        length + 1)
-        return -1;
+    uint32_t state = save_and_disable_interrupts();
+    bool ret = i2c_write_blocking(i2c_i, slave_addr, &buf[0], length + 1,
+                                  false) != length + 1;
+    restore_interrupts(state);
 
+    if (ret) return -1;
     return 0;
 }
 
 static char i2c_read(unsigned char slave_addr, unsigned char reg_addr,
                      unsigned char length, unsigned char *data) {
-    if ((i2c_write_blocking(i2c_i, slave_addr, &reg_addr, 1, true) != 1) ||
-        (i2c_read_blocking(i2c_i, slave_addr, data, length, false) != length))
-        return -1;
+    uint32_t state = save_and_disable_interrupts();
+    bool ret =
+        (i2c_write_blocking(i2c_i, slave_addr, &reg_addr, 1, true) != 1) ||
+        (i2c_read_blocking(i2c_i, slave_addr, data, length, false) != length);
+    restore_interrupts(state);
 
+    if (ret) return -1;
     return 0;
 }
 
@@ -1508,6 +1514,8 @@ int mpu_set_sensors(unsigned char sensors) {
     st.chip_cfg.sensors = sensors;
     st.chip_cfg.lp_accel_mode = 0;
     delay_ms(50);
+
+    if (sensors) set_int_enable(1);
     return 0;
 }
 

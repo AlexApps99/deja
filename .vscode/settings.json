@@ -10,5 +10,9 @@
     "explorer.fileNesting.patterns": {
         "*.hpp": "${capture}.cpp",
         "*.h": "${capture}.c"
+    },
+    "files.associations": {
+        "random": "cpp",
+        "*.tcc": "cpp"
     }
 }
