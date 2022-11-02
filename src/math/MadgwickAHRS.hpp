@@ -4,7 +4,7 @@
 // See: http://www.x-io.co.uk/node/8#open_source_ahrs_and_imu_algorithms
 class MadgwickAHRS {
    public:
-    using Num = double;
+    using Num = float;
     // sample period
     Num sample_period;
 

@@ -78,7 +78,7 @@ bool Bmp280::init() {
     msg = err_msg(bmp2_compute_meas_time(&interval_us, &conf, &bmp));
     if (msg) goto err;
 
-    Ldebug("%u", interval_us);
+    Ldebug("BMP interval: %u us", interval_us);
     add_repeating_timer_us(interval_us, int_handler, this, &timer);
     return true;
 

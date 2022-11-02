@@ -6,14 +6,10 @@
 
 // handle NaN, use reciprocal for division
 #define rsqrt(v)              \
-    Ldebug(">%f", v);         \
     if (v < 1e-10) {          \
         return;               \
     } else {                  \
-        v = sqrt(v);          \
-        Ldebug("~%f", v);     \
-        v = 1. / v;           \
-        Ldebug(".%f", v);     \
+        v = 1. / sqrtf(v);    \
         if (v > 1e10) return; \
     }
 
@@ -21,8 +17,7 @@ void MadgwickAHRS::Update(Num gx, Num gy, Num gz, Num ax, Num ay, Num az,
                           Num mx, Num my, Num mz) {
     Num q1 = quaternion[0], q2 = quaternion[1], q3 = quaternion[2],
         q4 = quaternion[3];  // short name local variable for readability
-    Ldebug("%f %f %f, %f %f %f, %f %f %f (%f %f %f %f)", gx, gy, gz, ax, ay, az,
-           mx, my, mz, q1, q2, q3, q4);
+
     Num norm;
     Num hx, hy, _2bx, _2bz;
     Num s1, s2, s3, s4;

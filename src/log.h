@@ -1,5 +1,7 @@
 #pragma once
 
+#include <pico/sync.h>
+
 #include "pico/stdio_usb.h"
 #include "stdio.h"
 
@@ -9,8 +11,10 @@ void logstr(unsigned char level, const char* buffer);
 #define logmsg(level, ...)                              \
     {                                                   \
         char buffer[MAX_FMT_LEN];                       \
+        uint32_t state = save_and_disable_interrupts(); \
         snprintf(&buffer[0], MAX_FMT_LEN, __VA_ARGS__); \
         logstr(level, buffer);                          \
+        restore_interrupts(state);                      \
     }
 #define LogLevel_ERROR 0
 #define LogLevel_WARN 1

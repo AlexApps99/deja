@@ -41,9 +41,6 @@ void Mpu9250::interrupt_handler() {
     int ret_g = mpu_get_gyro_reg(out.gyro);
     int ret_a = mpu_get_accel_reg(out.accel);
     int ret_m = mpu_get_compass_reg(out.mag);
-    Ldebug("%hd %hd %hd, %hd %hd %hd, %hd %hd %hd", out.gyro[0], out.gyro[1],
-           out.gyro[2], out.accel[0], out.accel[1], out.accel[2], out.mag[0],
-           out.mag[1], out.mag[2]);
     if (ret_g < 0 || ret_a < 0 || ret_m < 0) {
         Lerror("MPU read error %d %d %d", ret_g, ret_a, ret_m);
     } else {

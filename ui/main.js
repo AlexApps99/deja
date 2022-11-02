@@ -7,6 +7,7 @@ class PbDecoder {
     }
     // Add new data to buf
     add(data) {
+        //console.trace(Array.from(data).map(v => v.toString(16).padStart(2, '0')).join(' '));
         this.reader.buf.push(...data);
         this.reader.len = this.reader.buf.length;
     }
@@ -17,9 +18,11 @@ class PbDecoder {
         try {
             m = this.msg.decodeDelimited(this.reader);
         } catch (e) {
-            console.warn(e);
+            if (!error instanceof RangeError) {
+                console.warn(e);
+            }
         }
-        console.log(this.reader.buf.slice(old_pos, this.reader.pos));
+        //console.log(this.reader.buf.slice(old_pos, this.reader.pos).map(v => v.toString(16).padStart(2, '0')).join(' '));
         this.reader.buf.splice(0, m != null ? this.reader.pos : old_pos);
         this.reader.pos = 0;
         this.reader.len = this.reader.buf.length;
@@ -27,8 +30,11 @@ class PbDecoder {
     }
     transform(chunk, controller) {
         this.add(chunk);
-        let d = this.dec();
-        if (d) controller.enqueue(d);
+        let d = null;
+        do {
+            d = this.dec();
+            if (d) controller.enqueue(d);
+        } while (d);
     }
     flush(controller) { }
 }
@@ -107,10 +113,10 @@ export default async function main() {
     globalThis.tf = new TransformStream(globalThis.pbd);
     choose.addEventListener("click", async (el, ev) => {
         const serial = await navigator.serial.requestPort({
-            filters: [{
-                usbVendorId: 0x2E8A,
-                usbProductId: 0x000A
-            }]
+            //filters: [{
+            //    usbVendorId: 0x2E8A,
+            //    usbProductId: 0x000A
+            //}]
         });
         if (!serial) return;
         await serial.open({
